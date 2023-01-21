@@ -1,22 +1,7 @@
-use std::collections::HashMap;
-
-mod devices;
-mod house;
-
-use devices::providers::{OwningDeviceInfoProvider, BorrowingDeviceInfoProvider};
-use devices::sockets::{SmartSocket, SmartThermometer};
-use house::premises::{Room, SmartHouse};
-
-#[macro_export]
-macro_rules! dict {
-    ( $( $key:expr => $val:expr ), * ) => {
-        {
-            let mut dictionary = HashMap::new();
-            $( dictionary.insert($key, $val); )*
-            dictionary
-        }
-    };
-}
+use smarthome::devices::providers::{BorrowingDeviceInfoProvider, OwningDeviceInfoProvider};
+use smarthome::devices::sockets::{SmartSocket, SmartThermometer};
+use smarthome::dict;
+use smarthome::house::premises::SmartHouse;
 
 fn main() {
     // Инициализация устройств

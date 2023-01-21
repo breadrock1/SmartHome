@@ -16,11 +16,11 @@ pub mod premises {
     pub struct SmartHouse {
         #[allow(unused)]
         pub address: String,
-        pub rooms: HashMap<String, Room>,
+        pub rooms: HashMap<String, &'static Room>,
     }
 
     impl SmartHouse {
-        pub fn new(address: String, rooms: HashMap<String, Room>) -> Self {
+        pub fn new(address: String, rooms: HashMap<String, &'static Room>) -> Self {
             SmartHouse { address, rooms }
         }
 
