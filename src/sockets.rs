@@ -1,22 +1,27 @@
 pub mod sockets {
     pub enum SocketType {
         Simple,
-        Thermometer
+        Thermometer,
     }
 
+    #[derive(Clone)]
     pub struct SmartSocket {
         id: String,
     }
 
+    #[derive(Clone)]
     pub struct SmartThermometer {
         id: String,
         temperature: f32,
     }
 
     pub trait SocketTrait {
-        fn new(id: String) -> Self where Self: Sized;
+        fn new(id: String) -> Self
+        where
+            Self: Sized;
         fn get_id(&self) -> &String;
         fn set_id(&mut self, id: String);
+        fn get_info(&self) -> String;
     }
 
     impl SocketTrait for SmartSocket {
@@ -30,6 +35,10 @@ pub mod sockets {
 
         fn set_id(&mut self, id: String) {
             self.id = id
+        }
+
+        fn get_info(&self) -> String {
+            format!("socket id: {}; ", &self.id)
         }
     }
 
@@ -47,6 +56,10 @@ pub mod sockets {
 
         fn set_id(&mut self, id: String) {
             self.id = id
+        }
+
+        fn get_info(&self) -> String {
+            format!("thermometer id: {}, value: {}; ", &self.id, &self.temperature)
         }
     }
 
