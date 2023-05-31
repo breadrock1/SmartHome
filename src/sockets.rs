@@ -1,4 +1,4 @@
-pub mod sockets {
+pub mod smart_sockets {
     pub enum SocketType {
         Simple,
         Thermometer,
@@ -59,7 +59,10 @@ pub mod sockets {
         }
 
         fn get_info(&self) -> String {
-            format!("thermometer id: {}, value: {}; ", &self.id, &self.temperature)
+            format!(
+                "thermometer id: {}, value: {}; ",
+                &self.id, &self.temperature
+            )
         }
     }
 

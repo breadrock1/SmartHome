@@ -7,7 +7,8 @@ mod tests {
     fn init_environment() -> Result<Room, Box<dyn Error>> {
         let kitchen_therm = SmartSocket::new("kitchen_thermometer".to_string());
         let kitchen_socket = SmartThermometer::new("kitchen_socket".to_string());
-        let devices: Vec<Box<dyn SocketTrait>> = vec![Box::new(kitchen_socket), Box::new(kitchen_therm)];
+        let devices: Vec<Box<dyn SocketTrait>> =
+            vec![Box::new(kitchen_socket), Box::new(kitchen_therm)];
         let mut kitchen_room = Room::new("kitchen".to_string());
         &kitchen_room.add_devices(devices);
         Ok(kitchen_room)
@@ -39,7 +40,9 @@ mod tests {
         let mut house = SmartHouse::new("Moscow".to_string());
         house.add_room(Box::new(kitchen_room));
 
-        let info_provider = OwningDeviceInfoProvider { socket: socket.clone() };
+        let info_provider = OwningDeviceInfoProvider {
+            socket: socket.clone(),
+        };
         let report_result = house.create_report(&info_provider);
 
         let compare = "Room: kitchen -> socket id: socket 101; ";
@@ -50,17 +53,22 @@ mod tests {
     pub fn test_get_provider_report_borrow() {
         let socket = SmartSocket::new("socket 101".to_string());
         let thermometer = SmartThermometer::new("thermometer 101".to_string());
-        let devices: Vec<Box<dyn SocketTrait>> = vec![Box::new(socket.clone()), Box::new(thermometer.clone())];
+        let devices: Vec<Box<dyn SocketTrait>> =
+            vec![Box::new(socket.clone()), Box::new(thermometer.clone())];
         let mut kitchen_room = Room::new("kitchen".to_string());
         &kitchen_room.add_devices(devices);
 
         let mut house = SmartHouse::new("Moscow".to_string());
         house.add_room(Box::new(kitchen_room));
 
-        let info_provider = BorrowingDeviceInfoProvider { socket: &socket, thermometer: &thermometer };
+        let info_provider = BorrowingDeviceInfoProvider {
+            socket: &socket,
+            thermometer: &thermometer,
+        };
         let report_result = house.create_report(&info_provider);
 
-        let compare = "Room: kitchen -> socket id: socket 101; thermometer id: thermometer 101, value: 0; ";
+        let compare =
+            "Room: kitchen -> socket id: socket 101; thermometer id: thermometer 101, value: 0; ";
         assert_eq!(report_result, String::from(compare));
     }
 }

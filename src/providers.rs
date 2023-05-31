@@ -1,6 +1,6 @@
-pub mod providers {
-    use crate::sockets::sockets::{SmartSocket, SmartThermometer};
-    use crate::sockets::sockets::{SocketTrait};
+pub mod info_providers {
+    use crate::sockets::smart_sockets::SocketTrait;
+    use crate::sockets::smart_sockets::{SmartSocket, SmartThermometer};
 
     pub enum ProviderType {
         Owning,
@@ -17,18 +17,18 @@ pub mod providers {
     }
 
     pub trait DeviceInfoProvider {
-        fn status(&self, device: &Box<dyn SocketTrait>) -> String;
+        fn status(&self, device: &dyn SocketTrait) -> String;
     }
 
     impl DeviceInfoProvider for OwningDeviceInfoProvider {
-        fn status(&self, device: &Box<dyn SocketTrait>) -> String {
-            format!("{}", &device.get_info())
+        fn status(&self, device: &dyn SocketTrait) -> String {
+            format!("device - {}", &device.get_info())
         }
     }
 
     impl DeviceInfoProvider for BorrowingDeviceInfoProvider<'_, '_> {
-        fn status(&self, device: &Box<dyn SocketTrait>) -> String {
-            format!("{}", &device.get_info())
+        fn status(&self, device: &dyn SocketTrait) -> String {
+            format!("device - {}", &device.get_info())
         }
     }
 }

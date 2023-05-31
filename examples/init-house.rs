@@ -1,7 +1,6 @@
 extern crate smarthome;
 use crate::smarthome::*;
 
-
 fn main() {
     let kitchen_therm = SmartSocket::new("kitchen_thermometer".to_string());
     let kitchen_socket = SmartThermometer::new("kitchen_socket".to_string());

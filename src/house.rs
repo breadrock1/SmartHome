@@ -1,6 +1,6 @@
-pub mod house {
-    use crate::providers::providers::DeviceInfoProvider;
-    use crate::sockets::sockets::SocketTrait;
+pub mod smarthouse {
+    use crate::providers::info_providers::DeviceInfoProvider;
+    use crate::sockets::smart_sockets::SocketTrait;
     use std::collections::HashMap;
     use std::ops::Deref;
 
@@ -39,7 +39,10 @@ pub mod house {
 
     impl SmartHouse {
         pub fn new(address: String) -> Self {
-            SmartHouse { address, rooms: HashMap::new() }
+            SmartHouse {
+                address,
+                rooms: HashMap::new(),
+            }
         }
 
         pub fn new_with_rooms(address: String, rooms: HashMap<String, Box<Room>>) -> Self {
@@ -51,7 +54,8 @@ pub mod house {
         }
 
         pub fn get_rooms(&self) -> Vec<&Room> {
-            self.rooms.values()
+            self.rooms
+                .values()
                 .map(|room_| room_.deref())
                 .collect::<Vec<&Room>>()
         }
@@ -62,12 +66,11 @@ pub mod house {
         }
 
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {
-            self.get_rooms().iter()
-                .map(|room_| {
-                    match self.device_status(room_, provider) {
-                        Some(room_info) => room_info,
-                        None => format!("Failed get status for {}", room_.name),
-                    }
+            self.get_rooms()
+                .iter()
+                .map(|room_| match self.device_status(room_, provider) {
+                    Some(room_info) => room_info,
+                    None => format!("Failed get status for {}", room_.name),
                 })
                 .collect::<Vec<String>>()
                 .join("\n")
@@ -78,7 +81,7 @@ pub mod house {
             let room_info = format!("Room: {} -> ", &room.name);
             let report = room_devices
                 .iter()
-                .map(|device| provider.status(device))
+                .map(|device| provider.status(device.deref()))
                 .reduce(|first, second| first + &second)
                 .unwrap();
 
