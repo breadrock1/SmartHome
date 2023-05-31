@@ -1,4 +1,9 @@
 pub mod sockets {
+    pub enum SocketType {
+        Simple,
+        Thermometer
+    }
+
     pub struct SmartSocket {
         id: String,
     }
@@ -9,7 +14,7 @@ pub mod sockets {
     }
 
     pub trait SocketTrait {
-        fn new(id: String) -> Self;
+        fn new(id: String) -> Self where Self: Sized;
         fn get_id(&self) -> &String;
         fn set_id(&mut self, id: String);
     }
