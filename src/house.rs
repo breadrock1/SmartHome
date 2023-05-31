@@ -1,27 +1,27 @@
 pub mod house {
     use crate::providers::providers::DeviceInfoProvider;
-    use crate::sockets::sockets::{SmartSocket, SocketTrait};
+    use crate::sockets::sockets::SocketTrait;
     use std::collections::HashMap;
 
     pub struct Room {
         name: String,
-        devices: Vec<dyn SocketTrait>,
+        devices: Vec<Box<dyn SocketTrait>>,
     }
 
     pub struct SmartHouse {
         address: String,
-        rooms: HashMap<String, dyn SocketTrait>,
+        rooms: HashMap<String, Box<Room>>
     }
 
     impl Room {
         pub fn new(name: String) -> Self {
             Room {
                 name,
-                devices: Vec::<dyn SocketTrait>::new(),
+                devices: Vec::new()
             }
         }
 
-        pub fn add_devices(&mut self, devices: Vec<dyn SocketTrait>) {
+        pub fn add_devices(&mut self, devices: Vec<Box<dyn SocketTrait>>) {
             let room_devices = &mut self.devices;
             for device in devices {
                 room_devices.push(device);
@@ -36,35 +36,21 @@ pub mod house {
         pub fn new(address: String) -> Self {
             SmartHouse {
                 address,
-                rooms: HashMap::<String, Room>::new(),
+                rooms: HashMap::new(),
             }
         }
 
-        pub fn new_with_rooms(address: String, rooms: HashMap<String, Room>) -> Self {
+        pub fn new_with_rooms(address: String, rooms: HashMap<String, Box<Room>>) -> Self {
             SmartHouse { address, rooms }
         }
 
-        pub fn add_room(&mut self, room: Room) {
+        pub fn add_room(&mut self, room: Box<Room>) {
             let room_name = &room.name;
             self.rooms.insert(room_name.to_owned(), room);
         }
 
         pub fn get_address(&self) -> &String {
             &self.address
-        }
-
-        pub fn get_rooms(&self) -> Vec<String> {
-            todo!()
-        }
-
-        pub fn devices(&self, room: String) -> Vec<&String> {
-            self.rooms
-                .get(&room)
-                .map(|room| &room.devices)
-                .unwrap()
-                .iter()
-                .map(|device| device.get_id())
-                .collect()
         }
 
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {
