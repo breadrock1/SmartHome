@@ -10,4 +10,11 @@ fn main() {
 
     let mut house = SmartHouse::new("Moscow".to_string());
     house.add_room(Box::new(kitchen_room));
+
+    let info_provider = BorrowingDeviceInfoProvider {
+        socket,
+        thermometer,
+    };
+    let report_result = house.create_report(&info_provider);
+    println!("{}", report_result);
 }
