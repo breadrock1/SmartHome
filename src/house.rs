@@ -1,54 +1,76 @@
-pub mod premises {
+pub mod house {
+    use crate::providers::providers::DeviceInfoProvider;
+    use crate::sockets::sockets::{SmartSocket, SocketTrait};
     use std::collections::HashMap;
-    use crate::devices::providers::DeviceInfoProvider;
 
     pub struct Room {
-        pub name: String,
-        pub devices: Vec<String>,
-    }
-
-    impl Room {
-        pub fn new(name: String, devices: Vec<String>) -> Self {
-            Room { name, devices }
-        }
+        name: String,
+        devices: Vec<dyn SocketTrait>,
     }
 
     pub struct SmartHouse {
-        #[allow(unused)]
-        pub address: String,
-        pub rooms: HashMap<String, &'static Room>,
+        address: String,
+        rooms: HashMap<String, dyn SocketTrait>,
+    }
+
+    impl Room {
+        pub fn new(name: String) -> Self {
+            Room {
+                name,
+                devices: Vec::<dyn SocketTrait>::new(),
+            }
+        }
+
+        pub fn add_devices(&mut self, devices: Vec<dyn SocketTrait>) {
+            let room_devices = &mut self.devices;
+            for device in devices {
+                room_devices.push(device);
+            }
+        }
+
+        // pub fn add_device(&mut self, device: &SmartSocket);
+        // pub fn find_device(device_name: &str) -> Option<SmartSocket>;
     }
 
     impl SmartHouse {
-        pub fn new(address: String, rooms: HashMap<String, &'static Room>) -> Self {
+        pub fn new(address: String) -> Self {
+            SmartHouse {
+                address,
+                rooms: HashMap::<String, Room>::new(),
+            }
+        }
+
+        pub fn new_with_rooms(address: String, rooms: HashMap<String, Room>) -> Self {
             SmartHouse { address, rooms }
         }
 
-        // pub fn add_room(&mut self, name: String, room: Room) {
-        //     self.rooms.insert(name, room);
-        // }
-        //
-        // pub fn get_rooms(&self) -> Vec<&String> {
-        //     // Размер возвращаемого массива можно выбрать самостоятельно
-        //     self.rooms.keys().collect()
-        // }
-        //
-        // pub fn get_devices(&self, room: String) -> Vec<String> {
-        //     // Размер возвращаемого массива можно выбрать самостоятельно
-        //     let devices_opt = self.rooms.get(&room)
-        //         .map(|room| room.devices.clone());
-        //
-        //     match devices_opt {
-        //         Some(devices) => devices,
-        //         None => Vec::new()
-        //     }
-        // }
+        pub fn add_room(&mut self, room: Room) {
+            let room_name = &room.name;
+            self.rooms.insert(room_name.to_owned(), room);
+        }
+
+        pub fn get_address(&self) -> &String {
+            &self.address
+        }
+
+        pub fn get_rooms(&self) -> Vec<String> {
+            todo!()
+        }
+
+        pub fn devices(&self, room: String) -> Vec<&String> {
+            self.rooms
+                .get(&room)
+                .map(|room| &room.devices)
+                .unwrap()
+                .iter()
+                .map(|device| device.get_id())
+                .collect()
+        }
 
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {
             let status_vec: Vec<String> = self
                 .rooms
                 .values()
-                .into_iter()
                 .map(|room_| {
                     let status = self.device_status(room_, provider);
                     match status {
@@ -65,7 +87,7 @@ pub mod premises {
             let room_devices = &room.devices;
             room_devices
                 .iter()
-                .map(|device| provider.status(room.name.as_str(), device.as_str()))
+                .map(|device| provider.status(&room.name, device.get_id()))
                 .reduce(|first, second| first + &second)
         }
     }

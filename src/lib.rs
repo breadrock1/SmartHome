@@ -1,36 +1,34 @@
-pub mod devices;
 pub mod house;
-pub mod macros;
+pub mod providers;
+pub mod sockets;
 
-use std::collections::HashMap;
+use house::house::{Room, SmartHouse};
+use providers::providers::DeviceInfoProvider;
+use sockets::sockets::{SmartSocket, SmartThermometer, SocketTrait};
+use std::error::Error;
 
-use devices::providers::{OwningDeviceInfoProvider, BorrowingDeviceInfoProvider};
-use devices::sockets::{SmartSocket, SmartThermometer};
-use house::premises::{Room, SmartHouse};
-use macros::dict;
-
-
-pub fn create_house(address: &String) -> SmartHouse {
-    SmartHouse::new(
-        "Moscow, Arbatskaya, 10, 1".to_string(),
-        dict!()
-    )
+pub fn create_house(address: String) -> Result<SmartHouse, Box<dyn Error>> {
+    Ok(SmartHouse::new(address))
 }
 
-pub fn create_room(name: String, devices: Vec<String>) -> Room {
-    Room::new(name, devices)
+pub fn create_room(name: String) -> Result<Room, Box<dyn Error>> {
+    Ok(Room::new(name))
 }
 
-pub fn append_room(house: &mut SmartHouse, room: &'static Room) {
-    let room_name = &room.name;
-    house.rooms.insert(room_name.to_string(), room);
+pub fn create_device<T: SocketTrait>(dev_id: String) -> Result<T, Box<dyn Error>> {
+    Ok(T::new(dev_id))
 }
 
-pub fn append_rooms(house: &mut SmartHouse, rooms: Vec<&Room>) {
-    rooms.into_iter()
-        .for_each(|room| {
-            house.rooms.insert(room.name.clone(), room);
-        });
+pub fn append_devices<T: SocketTrait>(room: &mut Room, devices: Vec<T>) {
+    room.add_devices(devices)
 }
 
+pub fn append_room(house: &mut SmartHouse, room: Room) {
+    house.add_room(room)
+}
 
+pub fn append_rooms(house: &mut SmartHouse, rooms: Vec<Room>) {
+    for room in rooms {
+        house.add_room(room);
+    }
+}
