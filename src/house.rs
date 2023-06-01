@@ -1,4 +1,5 @@
 pub mod smarthouse {
+    use crate::errors::CustomError;
     use crate::providers::info_providers::DeviceInfoProvider;
     use crate::sockets::smart_sockets::SocketTrait;
     use std::collections::HashMap;
@@ -21,14 +22,34 @@ pub mod smarthouse {
             &self.devices
         }
 
-        pub fn add_device(&mut self, device: Box<dyn SocketTrait>) {
-            self.devices.push(device)
+        pub fn add_device(&mut self, device: Box<dyn SocketTrait>) -> Result<(), CustomError> {
+            let curr_dev_name = &device.get_id();
+            let duplicates = &self
+                .devices
+                .iter()
+                .map(|dev| dev.deref().get_id())
+                .any(|dev| dev.eq(*curr_dev_name));
+
+            match duplicates {
+                true => Err(CustomError::DeviceExists),
+                false => {
+                    self.devices.push(device);
+                    Ok(())
+                }
+            }
         }
 
-        pub fn add_devices(&mut self, devices: Vec<Box<dyn SocketTrait>>) {
+        pub fn add_devices(
+            &mut self,
+            devices: Vec<Box<dyn SocketTrait>>,
+        ) -> Result<(), CustomError> {
             for device in devices {
-                self.add_device(device);
+                let result = self.add_device(device);
+                if result.is_err() {
+                    return Err(CustomError::DeviceExists);
+                }
             }
+            Ok(())
         }
     }
 
@@ -60,9 +81,23 @@ pub mod smarthouse {
                 .collect::<Vec<&Room>>()
         }
 
-        pub fn add_room(&mut self, room: Box<Room>) {
+        pub fn get_room_by_id(&self, id: String) -> Option<&Room> {
+            let all_rooms = &self.get_rooms();
+            let result = all_rooms.iter().find(|room| room.name.eq(&id)).unwrap();
+
+            Some(result)
+        }
+
+        pub fn add_room(&mut self, room: Box<Room>) -> Result<(), CustomError> {
             let room_name = &room.name;
-            self.rooms.insert(room_name.clone(), room);
+            let duplicates = &self.rooms.contains_key(room_name);
+            match duplicates {
+                true => Err(CustomError::RoomExists),
+                false => {
+                    self.rooms.insert(room_name.clone(), room);
+                    Ok(())
+                }
+            }
         }
 
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {

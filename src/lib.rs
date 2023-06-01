@@ -1,3 +1,4 @@
+pub mod errors;
 pub mod house;
 pub mod providers;
 pub mod sockets;

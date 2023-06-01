@@ -10,7 +10,7 @@ mod tests {
         let devices: Vec<Box<dyn SocketTrait>> =
             vec![Box::new(kitchen_socket), Box::new(kitchen_therm)];
         let mut kitchen_room = Room::new("kitchen".to_string());
-        &kitchen_room.add_devices(devices);
+        kitchen_room.add_devices(devices).unwrap();
         Ok(kitchen_room)
     }
 
@@ -25,7 +25,7 @@ mod tests {
     pub fn test_get_all_rooms() {
         let kitchen_room = init_environment().unwrap();
         let mut house = SmartHouse::new("Moscow".to_string());
-        house.add_room(Box::new(kitchen_room));
+        house.add_room(Box::new(kitchen_room)).unwrap();
         let house_rooms = get_all_rooms(&house);
         assert_eq!(house_rooms.len(), 1);
     }
@@ -35,17 +35,15 @@ mod tests {
         let socket = SmartSocket::new("socket 101".to_string());
         let devices: Vec<Box<dyn SocketTrait>> = vec![Box::new(socket.clone())];
         let mut kitchen_room = Room::new("kitchen".to_string());
-        &kitchen_room.add_devices(devices);
+        kitchen_room.add_devices(devices).unwrap();
 
         let mut house = SmartHouse::new("Moscow".to_string());
-        house.add_room(Box::new(kitchen_room));
+        house.add_room(Box::new(kitchen_room)).unwrap();
 
-        let info_provider = OwningDeviceInfoProvider {
-            socket: socket.clone(),
-        };
+        let info_provider = OwningDeviceInfoProvider { socket };
         let report_result = house.create_report(&info_provider);
 
-        let compare = "Room: kitchen -> socket id: socket 101; ";
+        let compare = "Room: kitchen -> device - socket id: socket 101; ";
         assert_eq!(report_result, String::from(compare));
     }
 
@@ -56,10 +54,10 @@ mod tests {
         let devices: Vec<Box<dyn SocketTrait>> =
             vec![Box::new(socket.clone()), Box::new(thermometer.clone())];
         let mut kitchen_room = Room::new("kitchen".to_string());
-        &kitchen_room.add_devices(devices);
+        kitchen_room.add_devices(devices).unwrap();
 
         let mut house = SmartHouse::new("Moscow".to_string());
-        house.add_room(Box::new(kitchen_room));
+        house.add_room(Box::new(kitchen_room)).unwrap();
 
         let info_provider = BorrowingDeviceInfoProvider {
             socket: &socket,
@@ -68,7 +66,7 @@ mod tests {
         let report_result = house.create_report(&info_provider);
 
         let compare =
-            "Room: kitchen -> socket id: socket 101; thermometer id: thermometer 101, value: 0; ";
+            "Room: kitchen -> device - socket id: socket 101; device - thermometer id: thermometer 101, value: 0; ";
         assert_eq!(report_result, String::from(compare));
     }
 }
