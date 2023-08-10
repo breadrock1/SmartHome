@@ -1,26 +1,17 @@
-use std::error::Error;
-use std::fmt;
+use thiserror::Error;
 
-#[derive(Debug)]
-pub enum CustomError {
-    DeviceExists,
-    RoomExists,
+pub type RoomResult = Result<(), RoomError>;
+
+#[derive(Debug, Error)]
+pub enum RoomError {
+    #[error("Room already exists")]
+    AlreadyExists,
 }
 
-impl fmt::Display for CustomError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            CustomError::DeviceExists => write!(f, "Device already exists"),
-            CustomError::RoomExists => write!(f, "Room already exists"),
-        }
-    }
-}
+pub type DeviceResult = Result<(), DeviceError>;
 
-impl Error for CustomError {
-    fn description(&self) -> &str {
-        match *self {
-            CustomError::DeviceExists => "Device already exists",
-            CustomError::RoomExists => "Room already exists",
-        }
-    }
+#[derive(Debug, Error)]
+pub enum DeviceError {
+    #[error("Device already exists")]
+    AlreadyExists,
 }
