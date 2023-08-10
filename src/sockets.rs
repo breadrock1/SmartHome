@@ -4,12 +4,12 @@ pub mod smart_sockets {
         Thermometer,
     }
 
-    #[derive(Clone)]
+    #[derive(Default, Clone)]
     pub struct SmartSocket {
         id: String,
     }
 
-    #[derive(Clone)]
+    #[derive(Default, Clone)]
     pub struct SmartThermometer {
         id: String,
         temperature: f32,
