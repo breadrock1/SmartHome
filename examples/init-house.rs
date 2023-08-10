@@ -8,10 +8,10 @@ fn main() {
         Box::new(kitchen_socket.clone()),
         Box::new(kitchen_therm.clone()),
     ];
-    let mut kitchen_room = Room::new("kitchen".to_string());
+    let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
     kitchen_room.add_devices(devices).unwrap();
 
-    let mut house = SmartHouse::new("Moscow".to_string());
+    let mut house = SmartHouse::new("Moscow".to_string()).unwrap();
     house.add_room(Box::new(kitchen_room)).unwrap();
 
     let info_provider = BorrowingDeviceInfoProvider {
