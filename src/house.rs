@@ -2,7 +2,7 @@ pub mod smarthouse {
     use crate::errors::{DeviceError, DeviceResult};
     use crate::errors::{RoomError, RoomResult};
     use crate::providers::info_providers::DeviceInfoProvider;
-    use crate::sockets::smart_sockets::{SocketType, SocketTrait};
+    use crate::sockets::smart_sockets::{SocketType};
     use std::collections::HashMap;
     use std::ops::Deref;
 
@@ -30,7 +30,7 @@ pub mod smarthouse {
             &self.devices
         }
 
-        pub fn get_device<T: SocketTrait>(&self, dev_name: &str) -> Option<&SocketType> {
+        pub fn get_device(&self, dev_name: &str) -> Option<&SocketType> {
             self.devices.get(dev_name)
         }
 
