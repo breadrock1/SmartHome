@@ -12,12 +12,13 @@ pub use providers::info_providers::OwningDeviceInfoProvider;
 pub use sockets::smart_sockets::SmartSocket;
 pub use sockets::smart_sockets::SmartThermometer;
 pub use sockets::smart_sockets::SocketTrait;
+use crate::sockets::smart_sockets::SocketType;
 
 pub fn get_all_rooms(house: &SmartHouse) -> Vec<&Room> {
     house.get_rooms()
 }
 
-pub fn get_room_devices(room: &Room) -> &HashMap<String, Box<dyn SocketTrait>> {
+pub fn get_room_devices(room: &Room) -> &HashMap<String, SocketType> {
     room.get_devices()
 }
 

@@ -1,30 +1,34 @@
 pub mod smart_sockets {
-    use serde::{Deserialize, Serialize};
     pub enum SocketType {
-        Simple,
-        Thermometer,
+        Simple(SmartSocket),
+        Thermometer(SmartThermometer),
     }
 
-    #[derive(Default, Deserialize, Clone, Serialize)]
-    pub struct SmartSocket {
-        id: String,
-    }
+    impl SocketType {
+        pub fn name(&self) -> String {
+            let result = match self {
+                SocketType::Simple(d) => &d.id,
+                SocketType::Thermometer(d) => &d.id,
+            };
 
-    #[derive(Default, Deserialize, Clone, Serialize)]
-    pub struct SmartThermometer {
-        id: String,
-        temperature: f32,
+            result.to_string()
+        }
     }
 
     pub trait SocketTrait {
         fn new(id: String) -> Self
-        where
-            Self: Sized;
+            where
+                Self: Sized;
         fn get_id(&self) -> &String;
         fn set_id(&mut self, id: String);
         fn get_info(&self) -> String;
 
         fn get_type(&self) -> String;
+    }
+
+    #[derive(Default, Clone)]
+    pub struct SmartSocket {
+        id: String,
     }
 
     impl SocketTrait for SmartSocket {
@@ -49,11 +53,23 @@ pub mod smart_sockets {
         }
     }
 
+    impl From<SmartSocket> for SocketType {
+        fn from(value: SmartSocket) -> Self {
+            SocketType::Simple(value)
+        }
+    }
+
+    #[derive(Default, Clone)]
+    pub struct SmartThermometer {
+        id: String,
+        temperature: f32,
+    }
+
     impl SocketTrait for SmartThermometer {
         fn new(id: String) -> Self {
             SmartThermometer {
                 id,
-                temperature: 0 as f32,
+                temperature: 0f32,
             }
         }
 
@@ -89,6 +105,12 @@ pub mod smart_sockets {
 
         fn set_temperature(&mut self, value: f32) {
             self.temperature = value
+        }
+    }
+
+    impl From<SmartThermometer> for SocketType {
+        fn from(value: SmartThermometer) -> Self {
+            SocketType::Thermometer(value)
         }
     }
 }

@@ -2,14 +2,14 @@ pub mod smarthouse {
     use crate::errors::{DeviceError, DeviceResult};
     use crate::errors::{RoomError, RoomResult};
     use crate::providers::info_providers::DeviceInfoProvider;
-    use crate::sockets::smart_sockets::SocketTrait;
+    use crate::sockets::smart_sockets::{SocketType, SocketTrait};
     use std::collections::HashMap;
     use std::ops::Deref;
 
     #[derive(Default)]
     pub struct Room {
         name: String,
-        devices: HashMap<String, Box<dyn SocketTrait>>,
+        devices: HashMap<String, SocketType>,
     }
 
     impl Room {
@@ -26,16 +26,16 @@ pub mod smarthouse {
             self.name.deref()
         }
 
-        pub fn get_devices(&self) -> &HashMap<String, Box<dyn SocketTrait>> {
+        pub fn get_devices(&self) -> &HashMap<String, SocketType> {
             &self.devices
         }
 
-        pub fn get_device<T: SocketTrait>(&self, dev_name: &str) -> Option<&Box<dyn SocketTrait>> {
+        pub fn get_device<T: SocketTrait>(&self, dev_name: &str) -> Option<&SocketType> {
             self.devices.get(dev_name)
         }
 
-        pub fn add_device(&mut self, device: Box<dyn SocketTrait>) -> RoomResult {
-            let device_id = &device.get_id().as_str();
+        pub fn add_device(&mut self, device: SocketType) -> RoomResult {
+            let device_id = device.name();
             let dev_str = device_id.deref();
             match self.devices.contains_key(dev_str) {
                 true => Err(RoomError::AlreadyExists),
@@ -46,7 +46,7 @@ pub mod smarthouse {
             }
         }
 
-        pub fn add_devices(&mut self, devices: Vec<Box<dyn SocketTrait>>) -> DeviceResult {
+        pub fn add_devices(&mut self, devices: Vec<SocketType>) -> DeviceResult {
             for device in devices {
                 let result = self.add_device(device);
                 if result.is_err() {
@@ -139,11 +139,18 @@ pub mod smarthouse {
             let room_info = format!("Room: {} -> ", &room.name);
             let report = room_devices
                 .values()
-                .map(|device| provider.status(device.deref()))
+                .map(|device| self.prov(device, provider))
                 .reduce(|first, second| first + &second)
                 .unwrap();
 
             Some(room_info + &report)
+        }
+
+        fn prov(&self, soc_t: &SocketType, prov: &dyn DeviceInfoProvider) -> String {
+            match soc_t {
+                SocketType::Simple(d) => prov.status(d),
+                SocketType::Thermometer(d) => prov.status(d),
+            }
         }
     }
 }
