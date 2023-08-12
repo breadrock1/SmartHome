@@ -34,13 +34,14 @@ pub mod smarthouse {
             self.devices.get(dev_name)
         }
 
-        pub fn add_device(&mut self, device: SocketType) -> RoomResult {
+        pub fn add_device(&mut self, device: &SocketType) -> RoomResult {
             let device_id = device.name();
             let dev_str = device_id.deref();
             match self.devices.contains_key(dev_str) {
                 true => Err(RoomError::AlreadyExists),
                 false => {
-                    self.devices.insert(device_id.to_string(), device);
+                    let dev_clone = device.clone();
+                    self.devices.insert(device_id.to_string(), dev_clone);
                     Ok(())
                 }
             }
@@ -48,7 +49,7 @@ pub mod smarthouse {
 
         pub fn add_devices(&mut self, devices: Vec<SocketType>) -> DeviceResult {
             for device in devices {
-                let result = self.add_device(device);
+                let result = self.add_device(&device);
                 if result.is_err() {
                     return Err(DeviceError::AlreadyExists);
                 }

@@ -1,4 +1,5 @@
 pub mod smart_sockets {
+    #[derive(Clone)]
     pub enum SocketType {
         Simple(SmartSocket),
         Thermometer(SmartThermometer),
