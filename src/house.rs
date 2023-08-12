@@ -9,39 +9,34 @@ pub mod smarthouse {
     #[derive(Default)]
     pub struct Room {
         name: String,
-        devices: Vec<Box<dyn SocketTrait>>,
+        devices: HashMap<String, Box<dyn SocketTrait>>,
     }
 
     impl Room {
         pub fn new(name: String) -> Option<Self> {
             let room = Room {
                 name,
-                devices: Vec::new(),
+                devices: HashMap::new(),
             };
 
             Some(room)
         }
 
         pub fn get_name(&self) -> &str {
-            &self.name.deref()
+            self.name.deref()
         }
 
-        pub fn get_devices(&self) -> &Vec<Box<dyn SocketTrait>> {
+        pub fn get_devices(&self) -> &HashMap<String, Box<dyn SocketTrait>> {
             &self.devices
         }
 
         pub fn add_device(&mut self, device: Box<dyn SocketTrait>) -> RoomResult {
-            let curr_dev_name = &device.get_id();
-            let duplicates = &self
-                .devices
-                .iter()
-                .map(|dev| dev.deref().get_id())
-                .any(|dev| dev.eq(*curr_dev_name));
-
-            match duplicates {
+            let device_id = &device.get_id().as_str();
+            let dev_str = device_id.deref();
+            match self.devices.contains_key(dev_str) {
                 true => Err(RoomError::AlreadyExists),
                 false => {
-                    self.devices.push(device);
+                    self.devices.insert(device_id.to_string(), device);
                     Ok(())
                 }
             }
@@ -55,6 +50,13 @@ pub mod smarthouse {
                 }
             }
             Ok(())
+        }
+
+        pub fn del_device(&mut self, device: &str) -> DeviceResult {
+            match &self.devices.remove(device) {
+                None => Err(DeviceError::DeleteError),
+                Some(_) => Ok(())
+            }
         }
     }
 
@@ -132,7 +134,7 @@ pub mod smarthouse {
             let room_devices = &room.devices;
             let room_info = format!("Room: {} -> ", &room.name);
             let report = room_devices
-                .iter()
+                .values()
                 .map(|device| provider.status(device.deref()))
                 .reduce(|first, second| first + &second)
                 .unwrap();
