@@ -1,15 +1,16 @@
 pub mod smart_sockets {
+    use serde::{Deserialize, Serialize};
     pub enum SocketType {
         Simple,
         Thermometer,
     }
 
-    #[derive(Default, Clone)]
+    #[derive(Default, Deserialize, Clone, Serialize)]
     pub struct SmartSocket {
         id: String,
     }
 
-    #[derive(Default, Clone)]
+    #[derive(Default, Deserialize, Clone, Serialize)]
     pub struct SmartThermometer {
         id: String,
         temperature: f32,
