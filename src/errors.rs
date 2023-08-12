@@ -6,6 +6,8 @@ pub type RoomResult = Result<(), RoomError>;
 pub enum RoomError {
     #[error("Room already exists")]
     AlreadyExists,
+    #[error("Failed while removing room")]
+    DeleteError,
 }
 
 pub type DeviceResult = Result<(), DeviceError>;
