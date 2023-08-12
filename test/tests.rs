@@ -2,17 +2,17 @@
 mod tests {
     extern crate smarthome;
     use smarthome::*;
-    use std::error::Error;
+    use std::rc::Rc;
     use smarthome::sockets::smart_sockets::SocketType;
 
-    fn init_environment() -> Result<Room, Box<dyn Error>> {
+    fn init_environment() -> Option<Room> {
         let kitchen_therm = SmartSocket::new("kitchen_thermometer".to_string());
         let kitchen_socket = SmartThermometer::new("kitchen_socket".to_string());
         let devices: Vec<SocketType> =
             vec![SocketType::from(kitchen_socket), SocketType::from(kitchen_therm)];
         let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
         kitchen_room.add_devices(devices).unwrap();
-        Ok(kitchen_room)
+        Some(kitchen_room)
     }
 
     #[test]
@@ -25,8 +25,8 @@ mod tests {
     #[test]
     pub fn test_get_all_rooms() {
         let kitchen_room = init_environment().unwrap();
-        let mut house = SmartHouse::new("Moscow".to_string()).unwrap();
-        house.add_room(Box::new(kitchen_room)).unwrap();
+        let mut house = SmartHouse::new("Moscow").unwrap();
+        house.add_room(Rc::new(kitchen_room)).unwrap();
         let house_rooms = get_all_rooms(&house);
         assert_eq!(house_rooms.len(), 1);
     }
@@ -38,8 +38,8 @@ mod tests {
         let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
         kitchen_room.add_devices(devices).unwrap();
 
-        let mut house = SmartHouse::new("Moscow".to_string()).unwrap();
-        house.add_room(Box::new(kitchen_room)).unwrap();
+        let mut house = SmartHouse::new("Moscow").unwrap();
+        house.add_room(Rc::new(kitchen_room)).unwrap();
 
         let info_provider = OwningDeviceInfoProvider { socket };
         let report_result = house.create_report(&info_provider);
@@ -57,8 +57,8 @@ mod tests {
         let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
         kitchen_room.add_devices(devices).unwrap();
 
-        let mut house = SmartHouse::new("Moscow".to_string()).unwrap();
-        house.add_room(Box::new(kitchen_room)).unwrap();
+        let mut house = SmartHouse::new("Moscow").unwrap();
+        house.add_room(Rc::new(kitchen_room)).unwrap();
 
         let info_provider = BorrowingDeviceInfoProvider {
             socket: &socket,
