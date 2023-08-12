@@ -23,6 +23,8 @@ pub mod smart_sockets {
         fn get_id(&self) -> &String;
         fn set_id(&mut self, id: String);
         fn get_info(&self) -> String;
+
+        fn get_type(&self) -> String;
     }
 
     impl SocketTrait for SmartSocket {
@@ -40,6 +42,10 @@ pub mod smart_sockets {
 
         fn get_info(&self) -> String {
             format!("socket id: {}; ", &self.id)
+        }
+
+        fn get_type(&self) -> String {
+            String::from("Socket")
         }
     }
 
@@ -64,6 +70,10 @@ pub mod smart_sockets {
                 "thermometer id: {}, value: {}; ",
                 &self.id, &self.temperature
             )
+        }
+
+        fn get_type(&self) -> String {
+            String::from("Thermometer")
         }
     }
 
