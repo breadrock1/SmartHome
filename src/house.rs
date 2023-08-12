@@ -30,6 +30,10 @@ pub mod smarthouse {
             &self.devices
         }
 
+        pub fn get_device<T: SocketTrait>(&self, dev_name: &str) -> Option<&Box<dyn SocketTrait>> {
+            self.devices.get(dev_name)
+        }
+
         pub fn add_device(&mut self, device: Box<dyn SocketTrait>) -> RoomResult {
             let device_id = &device.get_id().as_str();
             let dev_str = device_id.deref();
