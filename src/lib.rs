@@ -14,11 +14,11 @@ pub use sockets::smart_sockets::SmartThermometer;
 pub use sockets::smart_sockets::SocketTrait;
 use crate::sockets::smart_sockets::SocketType;
 
-pub fn get_all_rooms(house: &SmartHouse) -> Vec<&Room> {
+pub fn get_all_rooms(house: &SmartHouse) -> HashMap<String, Room> {
     house.get_rooms()
 }
 
-pub fn get_room_devices(room: &Room) -> &HashMap<String, SocketType> {
+pub fn get_room_devices(room: &Room) -> HashMap<String, SocketType> {
     room.get_devices()
 }
 

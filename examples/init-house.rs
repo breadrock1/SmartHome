@@ -1,6 +1,5 @@
 extern crate smarthome;
 
-use std::rc::Rc;
 use smarthome::sockets::smart_sockets::SocketType;
 use crate::smarthome::*;
 
@@ -16,10 +15,10 @@ fn main() -> Result<(), anyhow::Error> {
 
     let new_therm = SmartSocket::new("new_socket".to_string());
     let new_therm = SocketType::from(new_therm);
-    kitchen_room.add_device(&new_therm).unwrap();
+    kitchen_room.add_device(new_therm).unwrap();
 
-    let mut house = SmartHouse::new("Moscow").unwrap();
-    house.add_room(Rc::new(kitchen_room)).unwrap();
+    let mut house = SmartHouse::new("Moscow");
+    house.add_room(kitchen_room).unwrap();
 
     let info_provider = BorrowingDeviceInfoProvider {
         socket: &kitchen_socket,

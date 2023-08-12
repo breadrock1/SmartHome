@@ -5,9 +5,8 @@ pub mod smarthouse {
     use crate::sockets::smart_sockets::{SocketType};
     use std::collections::HashMap;
     use std::ops::Deref;
-    use std::rc::Rc;
 
-    #[derive(Default)]
+    #[derive(Default, Clone)]
     pub struct Room {
         name: String,
         devices: HashMap<String, SocketType>,
@@ -27,39 +26,35 @@ pub mod smarthouse {
             self.name.deref()
         }
 
-        pub fn get_devices(&self) -> &HashMap<String, SocketType> {
-            &self.devices
+        pub fn get_devices(&self) -> HashMap<String, SocketType> {
+            self.devices.clone()
         }
 
         pub fn get_device(&self, dev_name: &str) -> Option<&SocketType> {
             self.devices.get(dev_name)
         }
 
-        pub fn add_device(&mut self, device: &SocketType) -> RoomResult {
+        pub fn add_device(&mut self, device: SocketType) -> RoomResult {
             let device_id = device.name();
             let dev_str = device_id.deref();
             match self.devices.contains_key(dev_str) {
                 true => Err(RoomError::AlreadyExists),
                 false => {
-                    let dev_clone = device.clone();
-                    self.devices.insert(device_id.to_string(), dev_clone);
+                    self.devices.insert(device_id, device);
                     Ok(())
                 }
             }
         }
 
-        pub fn add_devices(&mut self, devices: Vec<SocketType>) -> DeviceResult {
-            for device in devices {
-                let result = self.add_device(&device);
-                if result.is_err() {
-                    return Err(DeviceError::AlreadyExists);
-                }
-            }
+        pub fn add_devices(&mut self, devices: Vec<SocketType>) -> RoomResult {
+            devices.into_iter()
+                .for_each(|dev| self.add_device(dev).unwrap());
+
             Ok(())
         }
 
         pub fn del_device(&mut self, device: &str) -> DeviceResult {
-            match &self.devices.remove(device) {
+            match self.devices.remove(device) {
                 None => Err(DeviceError::DeleteError),
                 Some(_) => Ok(())
             }
@@ -69,42 +64,34 @@ pub mod smarthouse {
     #[derive(Default)]
     pub struct SmartHouse {
         address: String,
-        rooms: HashMap<String, Rc<Room>>,
+        rooms: HashMap<String, Room>,
     }
 
     impl SmartHouse {
-        pub fn new(address: &str) -> Option<Self> {
-            let sm = SmartHouse {
+        pub fn new(address: &str) -> Self {
+            SmartHouse {
                 address: address.to_string(),
                 rooms: HashMap::new(),
-            };
-
-            Some(sm)
+            }
         }
 
-        pub fn new_with_rooms(address: String, rooms: HashMap<String, Rc<Room>>) -> Option<Self> {
-            let sm = SmartHouse { address, rooms };
-            Some(sm)
+        pub fn new_with_rooms(address: String, rooms: HashMap<String, Room>) -> Self {
+            SmartHouse { address, rooms }
         }
 
-        pub fn get_address(&self) -> Option<String> {
-            let curr_address = &self.address;
-            Some(curr_address.into())
+        pub fn get_address(&self) -> Option<&str> {
+            Some(self.address.as_str())
         }
 
-        pub fn get_rooms(&self) -> Vec<&Room> {
-            self.rooms
-                .values()
-                .map(|room_| room_.deref())
-                .collect::<Vec<&Room>>()
+        pub fn get_rooms(&self) -> HashMap<String, Room> {
+            self.rooms.clone()
         }
 
-        pub fn get_room_by_id(&self, id: &str) -> Option<Rc<Room>> {
-            let room = &self.rooms.get(id);
-            room.cloned()
+        pub fn get_room_by_id(&self, id: &str) -> Option<Room> {
+            self.rooms.get(id).cloned()
         }
 
-        pub fn add_room(&mut self, room: Rc<Room>) -> RoomResult {
+        pub fn add_room(&mut self, room: Room) -> RoomResult {
             let room_name = &room.name;
             let duplicates = self.rooms.contains_key(room_name);
             match duplicates {
@@ -125,7 +112,7 @@ pub mod smarthouse {
 
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {
             self.get_rooms()
-                .iter()
+                .values()
                 .map(|room_| match self.device_status(room_, provider) {
                     Some(room_info) => room_info,
                     None => format!("Failed get status for {}", room_.name),
