@@ -5,6 +5,7 @@ pub mod smarthouse {
     use crate::sockets::smart_sockets::{SocketType};
     use std::collections::HashMap;
     use std::ops::Deref;
+    use std::rc::Rc;
 
     #[derive(Default)]
     pub struct Room {
@@ -68,20 +69,20 @@ pub mod smarthouse {
     #[derive(Default)]
     pub struct SmartHouse {
         address: String,
-        rooms: HashMap<String, Box<Room>>,
+        rooms: HashMap<String, Rc<Room>>,
     }
 
     impl SmartHouse {
-        pub fn new(address: String) -> Option<Self> {
+        pub fn new(address: &str) -> Option<Self> {
             let sm = SmartHouse {
-                address,
+                address: address.to_string(),
                 rooms: HashMap::new(),
             };
 
             Some(sm)
         }
 
-        pub fn new_with_rooms(address: String, rooms: HashMap<String, Box<Room>>) -> Option<Self> {
+        pub fn new_with_rooms(address: String, rooms: HashMap<String, Rc<Room>>) -> Option<Self> {
             let sm = SmartHouse { address, rooms };
             Some(sm)
         }
@@ -98,11 +99,12 @@ pub mod smarthouse {
                 .collect::<Vec<&Room>>()
         }
 
-        pub fn get_room_by_id(&self, id: String) -> Option<&Box<Room>> {
-            self.rooms.get(id.as_str())
+        pub fn get_room_by_id(&self, id: &str) -> Option<Rc<Room>> {
+            let room = &self.rooms.get(id);
+            room.cloned()
         }
 
-        pub fn add_room(&mut self, room: Box<Room>) -> RoomResult {
+        pub fn add_room(&mut self, room: Rc<Room>) -> RoomResult {
             let room_name = &room.name;
             let duplicates = self.rooms.contains_key(room_name);
             match duplicates {
