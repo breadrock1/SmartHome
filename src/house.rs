@@ -22,6 +22,10 @@ pub mod smarthouse {
             Some(room)
         }
 
+        pub fn get_name(&self) -> &str {
+            &self.name.deref()
+        }
+
         pub fn get_devices(&self) -> &Vec<Box<dyn SocketTrait>> {
             &self.devices
         }
