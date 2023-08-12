@@ -13,6 +13,10 @@ fn main() -> Result<(), anyhow::Error> {
     let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
     kitchen_room.add_devices(devices).unwrap();
 
+    let new_therm = SmartSocket::new("new_socket".to_string());
+    let new_therm = SocketType::from(new_therm.clone());
+    kitchen_room.add_device(&new_therm).unwrap();
+
     let mut house = SmartHouse::new("Moscow".to_string()).unwrap();
     house.add_room(Box::new(kitchen_room)).unwrap();
 
