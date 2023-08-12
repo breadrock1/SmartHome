@@ -4,6 +4,7 @@ pub mod macros;
 pub mod providers;
 pub mod sockets;
 
+use std::collections::HashMap;
 pub use house::smarthouse::{Room, SmartHouse};
 pub use providers::info_providers::BorrowingDeviceInfoProvider;
 pub use providers::info_providers::DeviceInfoProvider;
@@ -16,7 +17,7 @@ pub fn get_all_rooms(house: &SmartHouse) -> Vec<&Room> {
     house.get_rooms()
 }
 
-pub fn get_room_devices(room: &Room) -> &Vec<Box<dyn SocketTrait>> {
+pub fn get_room_devices(room: &Room) -> &HashMap<String, Box<dyn SocketTrait>> {
     room.get_devices()
 }
 
