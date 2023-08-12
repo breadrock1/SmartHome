@@ -98,11 +98,8 @@ pub mod smarthouse {
                 .collect::<Vec<&Room>>()
         }
 
-        pub fn get_room_by_id(&self, id: String) -> Option<&Room> {
-            let all_rooms = self.get_rooms();
-            let result = all_rooms.iter().find(|room| room.name.eq(&id)).unwrap();
-
-            Some(result)
+        pub fn get_room_by_id(&self, id: String) -> Option<&Box<Room>> {
+            self.rooms.get(id.as_str())
         }
 
         pub fn add_room(&mut self, room: Box<Room>) -> RoomResult {
