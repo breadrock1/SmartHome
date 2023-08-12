@@ -110,6 +110,13 @@ pub mod smarthouse {
             }
         }
 
+        pub fn del_room(&mut self, room_id: &str) -> RoomResult {
+            match &self.rooms.remove(room_id) {
+                None => Err(RoomError::DeleteError),
+                Some(_) => Ok(()),
+            }
+        }
+
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {
             self.get_rooms()
                 .iter()
