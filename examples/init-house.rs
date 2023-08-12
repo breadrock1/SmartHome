@@ -1,7 +1,7 @@
 extern crate smarthome;
 use crate::smarthome::*;
 
-fn main() {
+fn main() -> Result<(), anyhow::Error> {
     let kitchen_socket = SmartSocket::new("kitchen_socket".to_string());
     let kitchen_therm = SmartThermometer::new("kitchen_thermometer".to_string());
     let devices: Vec<Box<dyn SocketTrait>> = vec![
@@ -20,4 +20,5 @@ fn main() {
     };
     let report_result = house.create_report(&info_provider);
     println!("{}", report_result);
+    Ok(())
 }
