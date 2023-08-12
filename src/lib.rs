@@ -1,5 +1,6 @@
 pub mod errors;
 pub mod house;
+pub mod macros;
 pub mod providers;
 pub mod sockets;
 
