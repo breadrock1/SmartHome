@@ -16,4 +16,6 @@ pub type DeviceResult = Result<(), DeviceError>;
 pub enum DeviceError {
     #[error("Device already exists")]
     AlreadyExists,
+    #[error("Failed while removing device")]
+    DeleteError,
 }
