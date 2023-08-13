@@ -1,15 +1,17 @@
 #[cfg(test)]
 mod tests {
     extern crate smarthome;
-    use smarthome::*;
     use smarthome::sockets::smart_sockets::SocketType;
+    use smarthome::*;
 
     fn init_environment() -> Option<Room> {
-        let kitchen_therm = SmartSocket::new("kitchen_thermometer".to_string());
-        let kitchen_socket = SmartThermometer::new("kitchen_socket".to_string());
-        let devices: Vec<SocketType> =
-            vec![SocketType::from(kitchen_socket), SocketType::from(kitchen_therm)];
-        let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
+        let kitchen_therm = SmartSocket::new("kitchen_thermometer");
+        let kitchen_socket = SmartThermometer::new("kitchen_socket");
+        let devices: Vec<SocketType> = vec![
+            SocketType::from(kitchen_socket),
+            SocketType::from(kitchen_therm),
+        ];
+        let mut kitchen_room = Room::new("kitchen");
         kitchen_room.add_devices(devices).unwrap();
         Some(kitchen_room)
     }
@@ -17,7 +19,7 @@ mod tests {
     #[test]
     pub fn test_get_room_devices() {
         let kitchen_room = init_environment().unwrap();
-        let kitchen_devices = get_room_devices(&kitchen_room);
+        let kitchen_devices = kitchen_room.get_devices();
         assert_eq!(kitchen_devices.len(), 2);
     }
 
@@ -26,15 +28,15 @@ mod tests {
         let kitchen_room = init_environment().unwrap();
         let mut house = SmartHouse::new("Moscow");
         house.add_room(kitchen_room).unwrap();
-        let house_rooms = get_all_rooms(&house);
+        let house_rooms: Vec<&Room> = house.get_rooms();
         assert_eq!(house_rooms.len(), 1);
     }
 
     #[test]
     pub fn test_get_provider_report_own() {
-        let socket = SmartSocket::new("socket 101".to_string());
+        let socket = SmartSocket::new("socket 101");
         let devices: Vec<SocketType> = vec![SocketType::from(socket.clone())];
-        let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
+        let mut kitchen_room = Room::new("kitchen");
         kitchen_room.add_devices(devices).unwrap();
 
         let mut house = SmartHouse::new("Moscow");
@@ -49,11 +51,13 @@ mod tests {
 
     #[test]
     pub fn test_get_provider_report_borrow() {
-        let socket = SmartSocket::new("socket 101".to_string());
-        let thermometer = SmartThermometer::new("thermometer 101".to_string());
-        let devices: Vec<SocketType> =
-            vec![SocketType::from(socket.clone()), SocketType::from(thermometer.clone())];
-        let mut kitchen_room = Room::new("kitchen".to_string()).unwrap();
+        let socket = SmartSocket::new("socket 101");
+        let thermometer = SmartThermometer::new("thermometer 101");
+        let devices: Vec<SocketType> = vec![
+            SocketType::from(socket.clone()),
+            SocketType::from(thermometer.clone()),
+        ];
+        let mut kitchen_room = Room::new("kitchen");
         kitchen_room.add_devices(devices).unwrap();
 
         let mut house = SmartHouse::new("Moscow");

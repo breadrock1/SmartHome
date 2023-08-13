@@ -1,5 +1,4 @@
 pub mod smart_sockets {
-    #[derive(Clone)]
     pub enum SocketType {
         Simple(SmartSocket),
         Thermometer(SmartThermometer),
@@ -7,19 +6,18 @@ pub mod smart_sockets {
 
     impl SocketType {
         pub fn name(&self) -> String {
-            let result = match self {
+            match self {
                 SocketType::Simple(d) => &d.id,
                 SocketType::Thermometer(d) => &d.id,
-            };
-
-            result.to_string()
+            }
+            .to_string()
         }
     }
 
     pub trait SocketTrait {
-        fn new(id: String) -> Self
-            where
-                Self: Sized;
+        fn new(id: &str) -> Self
+        where
+            Self: Sized;
         fn get_id(&self) -> &String;
         fn set_id(&mut self, id: String);
         fn get_info(&self) -> String;
@@ -33,8 +31,8 @@ pub mod smart_sockets {
     }
 
     impl SocketTrait for SmartSocket {
-        fn new(id: String) -> Self {
-            SmartSocket { id }
+        fn new(id: &str) -> Self {
+            SmartSocket { id: id.to_string() }
         }
 
         fn get_id(&self) -> &String {
@@ -67,9 +65,9 @@ pub mod smart_sockets {
     }
 
     impl SocketTrait for SmartThermometer {
-        fn new(id: String) -> Self {
+        fn new(id: &str) -> Self {
             SmartThermometer {
-                id,
+                id: id.to_string(),
                 temperature: 0f32,
             }
         }

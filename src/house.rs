@@ -2,52 +2,53 @@ pub mod smarthouse {
     use crate::errors::{DeviceError, DeviceResult};
     use crate::errors::{RoomError, RoomResult};
     use crate::providers::info_providers::DeviceInfoProvider;
-    use crate::sockets::smart_sockets::{SocketType};
+    use crate::sockets::smart_sockets::SocketType;
+    use std::collections::hash_map::Entry;
     use std::collections::HashMap;
-    use std::ops::Deref;
 
-    #[derive(Default, Clone)]
+    #[derive(Default)]
     pub struct Room {
         name: String,
         devices: HashMap<String, SocketType>,
     }
 
     impl Room {
-        pub fn new(name: String) -> Option<Self> {
-            let room = Room {
-                name,
+        pub fn new(name: &str) -> Self {
+            Room {
+                name: name.to_string(),
                 devices: HashMap::new(),
-            };
-
-            Some(room)
+            }
         }
 
         pub fn get_name(&self) -> &str {
-            self.name.deref()
+            &self.name
         }
 
-        pub fn get_devices(&self) -> HashMap<String, SocketType> {
-            self.devices.clone()
+        pub fn get_devices(&self) -> Vec<&SocketType> {
+            self.devices.values().collect()
         }
 
         pub fn get_device(&self, dev_name: &str) -> Option<&SocketType> {
             self.devices.get(dev_name)
         }
 
+        pub fn get_device_mut(&mut self, dev_name: &str) -> Option<&mut SocketType> {
+            self.devices.get_mut(dev_name)
+        }
+
         pub fn add_device(&mut self, device: SocketType) -> RoomResult {
-            let device_id = device.name();
-            let dev_str = device_id.deref();
-            match self.devices.contains_key(dev_str) {
-                true => Err(RoomError::AlreadyExists),
-                false => {
-                    self.devices.insert(device_id, device);
+            match self.devices.entry(device.name()) {
+                Entry::Occupied(_) => Err(RoomError::AlreadyExists),
+                Entry::Vacant(entry) => {
+                    let _ = entry.insert(device);
                     Ok(())
                 }
             }
         }
 
         pub fn add_devices(&mut self, devices: Vec<SocketType>) -> RoomResult {
-            devices.into_iter()
+            devices
+                .into_iter()
                 .for_each(|dev| self.add_device(dev).unwrap());
 
             Ok(())
@@ -56,7 +57,7 @@ pub mod smarthouse {
         pub fn del_device(&mut self, device: &str) -> DeviceResult {
             match self.devices.remove(device) {
                 None => Err(DeviceError::DeleteError),
-                Some(_) => Ok(())
+                Some(_) => Ok(()),
             }
         }
     }
@@ -75,36 +76,34 @@ pub mod smarthouse {
             }
         }
 
-        pub fn new_with_rooms(address: String, rooms: HashMap<String, Room>) -> Self {
-            SmartHouse { address, rooms }
+        pub fn get_address(&self) -> &str {
+            self.address.as_str()
         }
 
-        pub fn get_address(&self) -> Option<&str> {
-            Some(self.address.as_str())
+        pub fn get_rooms(&self) -> Vec<&Room> {
+            self.rooms.values().collect()
         }
 
-        pub fn get_rooms(&self) -> HashMap<String, Room> {
-            self.rooms.clone()
+        pub fn get_room(&self, room_name: &str) -> Option<&Room> {
+            self.rooms.get(room_name)
         }
 
-        pub fn get_room_by_id(&self, id: &str) -> Option<Room> {
-            self.rooms.get(id).cloned()
+        pub fn get_room_mut(&mut self, room_name: &str) -> Option<&mut Room> {
+            self.rooms.get_mut(room_name)
         }
 
         pub fn add_room(&mut self, room: Room) -> RoomResult {
-            let room_name = &room.name;
-            let duplicates = self.rooms.contains_key(room_name);
-            match duplicates {
-                true => Err(RoomError::AlreadyExists),
-                false => {
-                    self.rooms.insert(room_name.clone(), room);
+            match self.rooms.entry(room.name.to_string()) {
+                Entry::Occupied(_) => Err(RoomError::AlreadyExists),
+                Entry::Vacant(entry) => {
+                    let _ = entry.insert(room);
                     Ok(())
                 }
             }
         }
 
-        pub fn del_room(&mut self, room_id: &str) -> RoomResult {
-            match &self.rooms.remove(room_id) {
+        pub fn del_room(&mut self, room_name: &str) -> RoomResult {
+            match self.rooms.remove(room_name) {
                 None => Err(RoomError::DeleteError),
                 Some(_) => Ok(()),
             }
@@ -112,28 +111,29 @@ pub mod smarthouse {
 
         pub fn create_report(&self, provider: &dyn DeviceInfoProvider) -> String {
             self.get_rooms()
-                .values()
-                .map(|room_| match self.device_status(room_, provider) {
-                    Some(room_info) => room_info,
-                    None => format!("Failed get status for {}", room_.name),
+                .into_iter()
+                .map(|room| match self.device_status(room, provider) {
+                    Some(info) => info,
+                    None => format!("Failed get status for {}", room.name),
                 })
                 .collect::<Vec<String>>()
                 .join("\n")
         }
 
         fn device_status(&self, room: &Room, provider: &dyn DeviceInfoProvider) -> Option<String> {
-            let room_devices = &room.devices;
-            let room_info = format!("Room: {} -> ", &room.name);
-            let report = room_devices
+            let room_info = format!("Room: {} -> ", room.name);
+
+            let report = room
+                .devices
                 .values()
-                .map(|device| self.prov(device, provider))
+                .map(|dev| self.gen_info(dev, provider))
                 .reduce(|first, second| first + &second)
                 .unwrap();
 
             Some(room_info + &report)
         }
 
-        fn prov(&self, soc_t: &SocketType, prov: &dyn DeviceInfoProvider) -> String {
+        fn gen_info(&self, soc_t: &SocketType, prov: &dyn DeviceInfoProvider) -> String {
             match soc_t {
                 SocketType::Simple(d) => prov.status(d),
                 SocketType::Thermometer(d) => prov.status(d),
